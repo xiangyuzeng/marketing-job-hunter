@@ -11,7 +11,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 import config
-import database
+
+try:
+    import database
+except Exception as e:
+    import traceback
+    _db_error = traceback.format_exc()
+    database = None
+else:
+    _db_error = None
 
 logging.basicConfig(
     level=logging.INFO,
@@ -82,6 +90,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Marketing Job Hunter", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+
+@app.get("/debug")
+async def debug():
+    return {"db_error": _db_error, "is_serverless": config.IS_SERVERLESS, "turso_url": bool(config.TURSO_DATABASE_URL)}
 
 
 @app.get("/", response_class=HTMLResponse)
