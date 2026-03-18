@@ -64,8 +64,9 @@ def run_scrape():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    database.init_db()
-    logger.info("Database initialized.")
+    if database:
+        database.init_db()
+        logger.info("Database initialized.")
 
     if _has_scheduler:
         logger.info("Running initial job scrape...")
